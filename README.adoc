@@ -10,6 +10,7 @@ In the following sections of this document I call a combination of Asciidoctor e
 
 === Component Layout
 A *component*
+
 * is placed in a directory
 * has no references outside of this directory
 * component code does not instantiate singelton objects
@@ -31,12 +32,14 @@ I want to get rid of the extra `<div class="paragraph">`` around the
 simple <p> elements, since I never use the extended functionality of paragraphs.
 
 Solution:
+
 . I write a simple paragraph.hbs template. 
 . Since I want to call getContent(), I have to write a helpers.js that registers a Handlebars helper that renders the content.
 
 Some other template engines may not even require to write a helpers.js.
 
 Assumptions
+
 * The caller checks if a file helpers.js exists
 * If the file exists, the caller invokes the exported method `configure` passing the
 instance (you called it environment) of the template engine
@@ -50,12 +53,14 @@ asciidoctor -t <path to template dir> [file(s) to convert]
 I want to render sections as HTML <section>-elements instead of <div>-elements.
 
 Solution:
+
 . I write a simple section.hbs template. 
 . I have to write a helpers.js that registers multiple Handlebars helpers that are required by the template.
 . I have to write a CSS stylesheet that defines the look and feel of a section.
 . The stylesheet is placed in the file stylesheets/mystyle.css
 
 Assumptions
+
 * The caller checks if a file helpers.js exists
 * If the file exists, the caller invokes the exported method `configure` passing the
 instance (you called it environment) of the template engine
@@ -73,6 +78,7 @@ custom values for the class attribute. For example
 ----
 
 Solution:
+
 . I write a simple section.hbs template. 
 . I have to write a helpers.js that registers multiple Handlebars helpers that are required by the template.
 . I have to write a inline macro that renders the <span>
@@ -83,6 +89,7 @@ new span-class*.
 . The stylesheet is placed in the file stylesheets/mystyle.css
 
 Assumptions
+
 * The caller checks if a file helpers.js exists
 * If the file exists, the caller invokes the exported method `configure` passing the
 instance (you called it environment) of the template engine
@@ -98,6 +105,7 @@ Same requirement as Section 3. This time, in addition to the inline macro I also
 
 Solution:
 Same implementation as in Section 3, but additionally
+
 . I have to write a block macro that renders the <div>
 . The block macro is placed in the file extensions/myblock.js
 . The file extensions/myblock.js exports a method register
@@ -141,6 +149,7 @@ Same requirement and solution as Section 6.
 
 Solution:
 Same assumptions as before, but in addition
+
 * The configure method of helpers.js returns an *attributes* object
 
 Just an exapmple
@@ -154,6 +163,7 @@ return {
 
 Assumpition:
 Same assumptions as before, but in addition
+
 * The caller merges the attributes returned by the configure method with the attributes it passes to the convert-methods
 ** If an attribute with the given name has been set, it is *NOT* overwritten
 
