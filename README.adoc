@@ -26,7 +26,6 @@ A *component*
 ** a directory for stylesheets
 ** a directory for Asciidoctor extensions
 
-=== 
 == Scenario 1
 I want to get rid of the extra `<div class="paragraph">`` around the
 simple <p> elements, since I never use the extended functionality of paragraphs.
@@ -50,6 +49,7 @@ asciidoctor -t <path to template dir> [file(s) to convert]
 ----
 
 == Scenario 2
+
 I want to render sections as HTML <section>-elements instead of <div>-elements.
 
 Solution:
@@ -71,6 +71,7 @@ asciidoctor -t <path to template dir> -a stylesdir=<path to template dir>/styles
 ----
 
 == Scenario 3
+
 I want to render sections as HTML <section>-elements instead of <div>-elements. In addition to that I want to write an Asciidoctor inline macro that renders a <span>-element with some
 custom values for the class attribute. For example
 ----
