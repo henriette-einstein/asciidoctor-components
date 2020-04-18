@@ -1,0 +1,163 @@
+= Asciidoctor Components
+
+Brainstorming about Asciidoctor components. I will first lay out some basic assumptions and
+then describe some - in my opionion typical - scenarios. I will try to show how a typical 
+command line invocation of a scenario may look like even though the CLI is only one 
+potential way of invocation.
+
+== Basic assumptions
+In the following sections of this document I call a combination of Asciidoctor extensions, Asciidoctor converters and associated CSS stylesheets a *component*.
+
+=== Component Layout
+A *component*
+* is placed in a directory
+* has no references outside of this directory
+* component code does not instantiate singelton objects
+** it does not instantiate template engines. Instead they have to be passed by the caller.
+** it does not instantiate an asciidoctor instance. 
+
+* A component directory contains
+** a file helpers.js 
+** one or more template files
+
+* A component can optionally contain
+** a directory for template fragments (in Handlebars they are called partials)
+** a directory for stylesheets
+** a directory for Asciidoctor extensions
+
+=== 
+== Scenario 1
+I want to get rid of the extra `<div class="paragraph">`` around the
+simple <p> elements, since I never use the extended functionality of paragraphs.
+
+Solution:
+. I write a simple paragraph.hbs template. 
+. Since I want to call getContent(), I have to write a helpers.js that registers a Handlebars helper that renders the content.
+
+Some other template engines may not even require to write a helpers.js.
+
+Assumptions
+* The caller checks if a file helpers.js exists
+* If the file exists, the caller invokes the exported method `configure` passing the
+instance (you called it environment) of the template engine
+
+The command line would be as follows
+----
+asciidoctor -t <path to template dir> [file(s) to convert]
+----
+
+== Scenario 2
+I want to render sections as HTML <section>-elements instead of <div>-elements.
+
+Solution:
+. I write a simple section.hbs template. 
+. I have to write a helpers.js that registers multiple Handlebars helpers that are required by the template.
+. I have to write a CSS stylesheet that defines the look and feel of a section.
+. The stylesheet is placed in the file stylesheets/mystyle.css
+
+Assumptions
+* The caller checks if a file helpers.js exists
+* If the file exists, the caller invokes the exported method `configure` passing the
+instance (you called it environment) of the template engine
+
+The command line would be as follows
+----
+asciidoctor -t <path to template dir> -a stylesdir=<path to template dir>/stylesheets -a stylesheet=mystyle.css [file(s) to convert]
+----
+
+== Scenario 3
+I want to render sections as HTML <section>-elements instead of <div>-elements. In addition to that I want to write an Asciidoctor inline macro that renders a <span>-element with some
+custom values for the class attribute. For example
+----
+<span class="myspanclass"></span>
+----
+
+Solution:
+. I write a simple section.hbs template. 
+. I have to write a helpers.js that registers multiple Handlebars helpers that are required by the template.
+. I have to write a inline macro that renders the <span>
+. The inline macro is placed in the file extensions/myspan.js
+. The file extensions/myspan.js exports a method register
+. I have to write a CSS stylesheet that defines the look and feel of a section *and of the
+new span-class*.
+. The stylesheet is placed in the file stylesheets/mystyle.css
+
+Assumptions
+* The caller checks if a file helpers.js exists
+* If the file exists, the caller invokes the exported method `configure` passing the
+instance (you called it environment) of the template engine
+* The caller invokes the register method for custom extensions
+
+The command line would be as follows
+----
+asciidoctor -t <path to template dir> -a stylesdir=<path to template dir>/stylesheets -a stylesheet=mystyle.css -r <path to template dir>/extensions/myspan.js [file(s) to convert]
+----
+
+== Scenario 4
+Same requirement as Section 3. This time, in addition to the inline macro I also need a block macro that renders a <div>-element with some custom attribute values.
+
+Solution:
+Same implementation as in Section 3, but additionally
+. I have to write a block macro that renders the <div>
+. The block macro is placed in the file extensions/myblock.js
+. The file extensions/myblock.js exports a method register
+
+The command line would be as follows
+----
+asciidoctor -t <path to template dir> -a stylesdir=<path to template dir>/stylesheets -a stylesheet=mystyle.css -r <path to template dir>/extensions/myspan.js  -r <path to template dir>/extensions/mydiv.js [file(s) to convert]
+----
+
+== Scenario 5
+Same requirement as Section 4
+
+Solution:
+Same solution as Section 4, but additionally
+. The file helpers.js imports the extensions myspan.js and mydiv.js
+. The file helpers.js exports a method register, that registers *both* the
+extensions myspan and mydiv
+
+The command line would be as follows
+----
+asciidoctor -t <path to template dir> -a stylesdir=<path to template dir>/stylesheets -a stylesheet=mystyle.css -r <path to template dir>/helpers.js [file(s) to convert]
+----
+
+== Scenario 6
+Same requirement and solution as Section 5.
+
+Assumpition:
+Same assumptions as before, but in addition
+
+* The caller checks if the file helpers.js contains a register method
+* If that is the case, the caller invokes the register method the same way as
+with the -r otpion on the CLI
+
+The command line would be as follows
+----
+asciidoctor -t <path to template dir> -a stylesdir=<path to template dir>/stylesheets -a stylesheet=mystyle.css [file(s) to convert]
+----
+
+== Scenario 7
+Same requirement and solution as Section 6.
+
+Solution:
+Same assumptions as before, but in addition
+* The configure method of helpers.js returns an *attributes* object
+
+Just an exapmple
+----
+const ospath = require('path')
+return {
+    stylesdir: ospath.join(__dirname, 'stylesheets'),
+    stylesheet: 'mystyle.css'
+}
+----
+
+Assumpition:
+Same assumptions as before, but in addition
+* The caller merges the attributes returned by the configure method with the attributes it passes to the convert-methods
+** If an attribute with the given name has been set, it is *NOT* overwritten
+
+The command line would be as follows
+----
+asciidoctor -t <path to template dir> [file(s) to convert]
+----
